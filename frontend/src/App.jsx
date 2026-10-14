@@ -17,7 +17,9 @@ const API_BASE = (
     ? /^https?:\/\//i.test(configuredApiUrl)
       ? configuredApiUrl
       : `https://${configuredApiUrl}/api`
-    : "http://127.0.0.1:5000/api"
+    : import.meta.env.PROD
+      ? "/api"
+      : "http://127.0.0.1:5000/api"
 ).replace(/\/$/, "");
 const NAVIGATION = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },

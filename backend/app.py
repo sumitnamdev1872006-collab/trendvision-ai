@@ -15,7 +15,8 @@ from flask_cors import CORS
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
-DATABASE_PATH = Path(os.getenv("DATABASE_PATH", str(BASE_DIR / "trendvision.db")))
+default_database_path = "/tmp/trendvision.db" if os.getenv("VERCEL") else str(BASE_DIR / "trendvision.db")
+DATABASE_PATH = Path(os.getenv("DATABASE_PATH", default_database_path))
 SAMPLE_PATH = BASE_DIR / "data" / "sample_posts.csv"
 PLATFORMS = {"All", "Instagram", "ShareChat", "YouTube"}
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024

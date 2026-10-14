@@ -71,6 +71,12 @@ The root `render.yaml` defines a free Render web service for the Flask API and a
 
 The free API service uses temporary local storage for SQLite analysis history and CSV uploads. Saved history and imported posts can reset when Render restarts or redeploys the service; the bundled sample dashboard and API continue to work. Use persistent storage or a managed database if saved history and uploads must survive restarts.
 
+## Deploy to Vercel
+
+The repository also supports a single Vercel deployment for the Flask API and React dashboard. Import this GitHub repository in Vercel and keep the project root set to the repository root. The included `vercel.json` builds the frontend into `public/`, and Vercel runs the root Flask entry point as a Python Function. No `VITE_API_URL` environment variable is required: production dashboard requests use the same deployment's `/api` routes.
+
+Use the Vercel Hobby plan for a personal project. SQLite data is stored under `/tmp` on Vercel and is temporary; analysis history and uploaded posts may be lost when function instances are replaced. Bundled sample posts remain available.
+
 ### Production frontend build
 
 ```powershell
