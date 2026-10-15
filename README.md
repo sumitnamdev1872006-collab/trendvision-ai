@@ -44,7 +44,7 @@ py app.py
 
 If PowerShell blocks virtual-environment activation, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, or run the environment's Python directly with `.\.venv\Scripts\python.exe`.
 
-The API runs at `http://127.0.0.1:5000`. Its root (`http://127.0.0.1:5000/`) shows an API welcome message; the dashboard is served separately by Vite at `http://localhost:5173`. Check API health at `http://127.0.0.1:5000/api/health`.
+The API runs at `http://127.0.0.1:5000`; the dashboard is served separately by Vite at `http://localhost:5173`. Check API health at `http://127.0.0.1:5000/api/health`. In production, the Flask service serves the built dashboard from `/`.
 
 ### 2. Start the frontend
 
@@ -62,14 +62,16 @@ The frontend defaults to `http://127.0.0.1:5000/api`. To point it at another API
 
 ## Deploy to Render
 
-The root `render.yaml` defines a free Render web service for the Flask API and a free static site for the React dashboard. It configures the production Gunicorn server, API health check, frontend API URL, and CORS origin automatically.
+The root `render.yaml` builds the React dashboard and serves it from the Flask web service. The dashboard and API share one Render URL, so no separate frontend/API links or cross-origin settings are needed.
 
 1. Push the project to a GitHub or GitLab repository. The repository root must contain `render.yaml`.
 2. In the [Render Dashboard](https://dashboard.render.com/), select **New > Blueprint** and connect that repository.
-3. Review the `trendvision-api` and `trendvision-dashboard` services, then select **Deploy Blueprint**.
-4. Once both services finish deploying, open the dashboard's `onrender.com` URL.
+3. Review the single `trendvision-ai` web service, then select **Deploy Blueprint**.
+4. Once it finishes deploying, open its `onrender.com` URL for both the dashboard and API.
 
-The free API service uses temporary local storage for SQLite analysis history and CSV uploads. Saved history and imported posts can reset when Render restarts or redeploys the service; the bundled sample dashboard and API continue to work. Use persistent storage or a managed database if saved history and uploads must survive restarts.
+After the first deployment, pushes to the connected branch trigger a new deployment automatically. Render provides the public URL after the service is created.
+
+The free service uses temporary local storage for SQLite analysis history and CSV uploads. Saved history and imported posts can reset when Render restarts or redeploys the service; the bundled sample dashboard and API continue to work. Use persistent storage or a managed database if saved history and uploads must survive restarts.
 
 ## Deploy to Vercel
 

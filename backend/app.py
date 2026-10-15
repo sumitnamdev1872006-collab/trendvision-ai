@@ -10,14 +10,17 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, request, send_file, send_from_directory
 from flask_cors import CORS
+from werkzeug.exceptions import NotFound
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 default_database_path = "/tmp/trendvision.db" if os.getenv("VERCEL") else str(BASE_DIR / "trendvision.db")
 DATABASE_PATH = Path(os.getenv("DATABASE_PATH", default_database_path))
 SAMPLE_PATH = BASE_DIR / "data" / "sample_posts.csv"
+FRONTEND_DIST = BASE_DIR.parent / "frontend" / "dist"
+FRONTEND_INDEX = FRONTEND_DIST / "index.html"
 PLATFORMS = {"All", "Instagram", "ShareChat", "YouTube"}
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 
@@ -310,13 +313,17 @@ def health():
     return jsonify({"status": "ok", "source": data_source()})
 
 
-@app.get("/")
 @app.get("/api")
 def api_index():
+    frontend_built = FRONTEND_INDEX.is_file()
     return jsonify({
         "name": "TrendVision AI",
-        "message": "The API is running. Start the React frontend to open the dashboard.",
-        "frontend": "http://localhost:5173",
+        "message": (
+            "The API is running. Open the dashboard at /."
+            if frontend_built
+            else "The API is running. Start the React frontend to open the dashboard."
+        ),
+        "frontend": "/" if frontend_built else "http://localhost:5173",
         "health": "/api/health",
         "endpoints": [
             "/api/overview",
@@ -330,6 +337,27 @@ def api_index():
         ],
         "source": data_source(),
     })
+
+
+@app.get("/")
+def dashboard():
+    if FRONTEND_INDEX.is_file():
+        return send_file(FRONTEND_INDEX)
+    return api_index()
+
+
+@app.get("/<path:asset_path>")
+def frontend_asset(asset_path):
+    if asset_path == "api" or asset_path.startswith("api/"):
+        return jsonify({"error": "Not found."}), 404
+
+    if not FRONTEND_INDEX.is_file():
+        return jsonify({"error": "Not found."}), 404
+
+    try:
+        return send_from_directory(FRONTEND_DIST, asset_path)
+    except NotFound:
+        return send_file(FRONTEND_INDEX)
 
 
 @app.get("/api/data/summary")

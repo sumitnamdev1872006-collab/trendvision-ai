@@ -1,32 +1,15 @@
 services:
   - type: web
-    name: trendvision-api
+    name: trendvision-ai
     runtime: python
     plan: free
-    buildCommand: pip install -r backend/requirements.txt
-    startCommand: gunicorn --chdir backend --bind 0.0.0.0:$PORT --workers 1 --threads 4 app:app
+    buildCommand: pip install -r backend/requirements.txt && npm --prefix frontend ci && npm --prefix frontend run build
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 app:app
     healthCheckPath: /api/health
     envVars:
       - key: PYTHON_VERSION
         value: 3.13.5
-      - key: DATABASE_PATH
-        value: /tmp/trendvision.db
-      - key: CORS_ORIGINS
-        fromService:
-          type: web
-          name: trendvision-dashboard
-          property: host
-
-  - type: web
-    name: trendvision-dashboard
-    runtime: static
-    buildCommand: cd frontend && npm ci && npm run build
-    staticPublishPath: frontend/dist
-    envVars:
       - key: NODE_VERSION
         value: 22.12.0
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: trendvision-api
-          property: host
+      - key: DATABASE_PATH
+        value: /tmp/trendvision.db
